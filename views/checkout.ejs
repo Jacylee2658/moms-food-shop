@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .checkout-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        
+        .order-summary {
+            background: #f9f9f9;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+        }
+        
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .total {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #ff6b35;
+            margin-top: 1rem;
+            text-align: right;
+        }
+        
+        .btn-submit {
+            background: #ff6b35;
+            color: white;
+            padding: 1rem;
+            border: none;
+            border-radius: 8px;
+            width: 100%;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+        
+        .btn-submit:hover {
+            background: #e55a2b;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-bottom: 1rem;
+            color: #ff6b35;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🍲 Mama Jude's Food Shop</h1>
+        <p>Checkout</p>
+    </div>
+    
+    <div class="checkout-container">
+        <a href="/" class="back-link">← Back to Shop</a>
+        <h2>Complete Your Order</h2>
+        
+        <div id="cartSummary" class="order-summary">
+            <h3>Order Summary</h3>
+            <div id="orderItems"></div>
+            <div class="total">Total: <span id="totalAmount">₦0</span></div>
+        </div>
+        
+        <form id="checkoutForm">
+            <div class="form-group">
+                <label>Full Name *</label>
+                <input type="text" id="name" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Phone Number *</label>
+                <input type="tel" id="phone" required placeholder="08012345678">
+            </div>
+            
+            <div class="form-group">
+                <label>Pickup Time *</label>
+                <select id="pickup_time" required>
+                    <option value="">Select pickup time</option>
+                    <option value="9:00 AM - 10:00 AM">9:00 AM - 10:00 AM</option>
+                    <option value="10:00 AM - 11:00 AM">10:00 AM - 11:00 AM</option>
+                    <option value="11:00 AM - 12:00 PM">11:00 AM - 12:00 PM</option>
+                    <option value="12:00 PM - 1:00 PM">12:00 PM - 1:00 PM</option>
+                    <option value="1:00 PM - 2:00 PM">1:00 PM - 2:00 PM</option>
+                    <option value="2:00 PM - 3:00 PM">2:00 PM - 3:00 PM</option>
+                    <option value="3:00 PM - 4:00 PM">3:00 PM - 4:00 PM</option>
+                    <option value="4:00 PM - 5:00 PM">4:00 PM - 5:00 PM</option>
+                    <option value="5:00 PM - 6:00 PM">5:00 PM - 6:00 PM</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Special Instructions (Optional)</label>
+                <textarea id="notes" rows="3" placeholder="Any special requests?"></textarea>
+            </div>
+            
+            <button type="submit" class="btn-submit">Place Order ✅</button>
+        </form>
+    </div>
+    
+    <div class="footer">
+        <p>🍲 Mama Jude's Food Shop</p>
+        <p>📍 Pickup available | 📞 Call: 070-614-37700</p>
+    </div>
+    
+    <script>
+        
+        // Load cart from localStorage
+        let cart = [];
+        
+        function loadCart() {
+            const savedCart = localStorage.getItem('cart');
+            if (savedCart) {
+                cart = JSON.parse(savedCart);
+                displayCart();
+            } else {
+                window.location.href = '/';
+            }
+        }
+        
+        function displayCart() {
+            const orderItems = document.getElementById('orderItems');
+            let total = 0;
+            
+            if (cart.length === 0) {
+                orderItems.innerHTML = '<p>Your cart is empty. <a href="/">Continue shopping</a></p>';
+                return;
+            }
+            
+            orderItems.innerHTML = cart.map(item => {
+                const itemTotal = item.price * item.quantity;
+                total += itemTotal;
+                return `
+                    <div class="order-item">
+                        <span>${item.name} x ${item.quantity}</span>
+                        <span>₦${itemTotal.toLocaleString()}</span>
+                    </div>
+                `;
+            }).join('');
+            
+            document.getElementById('totalAmount').textContent = `₦${total.toLocaleString()}`;
+        }
+        
+        // Handle form submission
+        document.getElementById('checkoutForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value;
+            const phone = document.getElementById('phone').value;
+            const pickup_time = document.getElementById('pickup_time').value;
+            const notes = document.getElementById('notes').value;
+            
+            if (!name || !phone || !pickup_time) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            if (cart.length === 0) {
+                alert('Your cart is empty!');
+                return;
+            }
+            
+            const response = await fetch('/checkout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name,
+                    phone,
+                    pickup_time,
+                    notes,
+                    cart_data: JSON.stringify(cart)
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                localStorage.removeItem('cart');
+                alert(`Order placed successfully! Your order number is: ${result.orderNumber}\n\nWe'll prepare your items for pickup.`);
+                window.location.href = '/';
+            } else {
+                alert('Error: ' + result.message);
+            }
+        });
+        
+        loadCart();
+    </script>
+</body>
+</html>
